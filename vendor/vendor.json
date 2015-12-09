@@ -18,6 +18,11 @@
 			"revisionTime": "2015-11-23T13:47:34+01:00"
 		},
 		{
+			"path": "github.com/captncraig/caddy-cmd",
+			"revision": "a2846fd1a7ccda99152d273abda594ee0c184919",
+			"revisionTime": "2015-12-09T14:05:28-07:00"
+		},
+		{
 			"path": "github.com/captncraig/caddy-stats",
 			"revision": "85364eafafcb338bd86ea135df2d88f9910a03b7",
 			"revisionTime": "2015-12-05T00:14:09-07:00"
@@ -64,118 +69,118 @@
 		},
 		{
 			"path": "github.com/mholt/caddy/caddy",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/caddy/assets",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/caddy/letsencrypt",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/caddy/parse",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/caddy/setup",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/basicauth",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/browse",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/errors",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/extensions",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/fastcgi",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/gzip",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/headers",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/inner",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/log",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/markdown",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/mime",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/proxy",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/redirect",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/rewrite",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/templates",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/websocket",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/server",
-			"revision": "62f2c0f53b01791735d542033e820b5d12e4441a",
-			"revisionTime": "2015-12-08T20:10:25-07:00"
+			"revision": "fc432f98fab9c2c8a60dcf7e86583eae10ca73d2",
+			"revisionTime": "2015-12-08T20:37:59-07:00"
 		},
 		{
 			"path": "github.com/rcrowley/go-metrics",
@@ -184,8 +189,8 @@
 		},
 		{
 			"path": "github.com/russross/blackfriday",
-			"revision": "300106c228d52c8941d4b3de6054a6062a86dda3",
-			"revisionTime": "2015-11-17T09:23:12+02:00"
+			"revision": "e3cbadc5c960894017d53ecf49dba4c361dacddf",
+			"revisionTime": "2015-12-06T19:26:14+02:00"
 		},
 		{
 			"path": "github.com/shurcooL/sanitized_anchor_name",
@@ -204,8 +209,8 @@
 		},
 		{
 			"path": "github.com/xenolf/lego/acme",
-			"revision": "a528107826e98f0f96a0d757c791e5414296881b",
-			"revisionTime": "2015-12-03T20:04:55+01:00"
+			"revision": "c4add3c81ed1bac4f8df20d9ca76e47521a82401",
+			"revisionTime": "2015-12-07T19:33:40-07:00"
 		},
 		{
 			"path": "golang.org/x/crypto/ocsp",
@@ -219,13 +224,13 @@
 		},
 		{
 			"path": "golang.org/x/net/http2",
-			"revision": "438097d76259d4670fb324c834c2426a7f1946f8",
-			"revisionTime": "2015-12-01T22:16:42Z"
+			"revision": "1796f9b8b7178e3c7587dff118d3bb9d37f9b0b3",
+			"revisionTime": "2015-12-08T22:22:07Z"
 		},
 		{
 			"path": "golang.org/x/net/http2/hpack",
-			"revision": "438097d76259d4670fb324c834c2426a7f1946f8",
-			"revisionTime": "2015-12-01T22:16:42Z"
+			"revision": "1796f9b8b7178e3c7587dff118d3bb9d37f9b0b3",
+			"revisionTime": "2015-12-08T22:22:07Z"
 		},
 		{
 			"path": "gopkg.in/natefinch/lumberjack.v2",

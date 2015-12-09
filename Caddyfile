@@ -1,0 +1,9 @@
+localhost:8787 {
+	cmd /env {
+		method GET
+		exec pwd
+		exec ls
+		exec env
+		exec git rev-parse HEAD
+	}
+}

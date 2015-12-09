@@ -47,6 +47,8 @@ func init() {
 	flag.BoolVar(&version, "version", false, "Show version")
 }
 
+// Main runs all of the logic that the caddy executable runs, including flag parsing, configuration loading,
+// and starting the server. This should never return until the server shuts down.
 func Main() {
 	flag.Parse() // called here in main() to allow other packages to set flags in their inits
 
