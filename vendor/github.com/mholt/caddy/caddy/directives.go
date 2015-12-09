@@ -68,6 +68,8 @@ var directiveOrder = []directive{
 	{"browse", setup.Browse},
 }
 
+//RegisterDirective will add the specified directive to caddy's directive stack. It will be inserted after the
+// specified middleware, or at the end if no match is found.
 func RegisterDirective(name string, setup SetupFunc, after string) {
 	dir := directive{name: name, setup: setup}
 	idx := len(directiveOrder)
