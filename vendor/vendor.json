@@ -19,8 +19,8 @@
 		},
 		{
 			"path": "github.com/captncraig/caddy-cmd",
-			"revision": "0231cef3caff6ac8954af859ba445c3800bd6fd7",
-			"revisionTime": "2015-12-09T15:57:34-07:00"
+			"revision": "00ba822cf0b2bb30c440d2383317a82dacd23318",
+			"revisionTime": "2015-12-10T10:58:21-07:00"
 		},
 		{
 			"path": "github.com/captncraig/caddy-stats",

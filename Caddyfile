@@ -1,9 +1,14 @@
 localhost:8787 {
-	cmd /env {
+	root /etc
+	cmd /foo pwd
+	cmd /bar ping google.com {
+		ui /cmd
+		description "Foo Bar"
 		method GET
-		exec pwd
-		exec ls
-		exec env
-		exec git rev-parse HEAD
+		timeout 15s
+	}
+	cmd /baz {
+		exec ls -la
+		exec docker run -v `pwd`/foo:/foo golang:1.5.2
 	}
 }
