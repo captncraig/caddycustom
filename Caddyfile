@@ -1,8 +1,9 @@
 localhost:8787 {
 	root /etc
 	cmd /foo pwd
-	cmd /bar ping google.com {
+	cmd /bar ls /Users/craig/b* {
 		ui /cmd
+		shell
 		description "Foo Bar"
 		method GET
 		timeout 15s
