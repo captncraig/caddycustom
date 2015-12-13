@@ -29,6 +29,9 @@ func Setup(c *setup.Controller) (middleware.Middleware, error) {
 	// repos configured with webhooks
 	var hookRepos []*Repo
 
+	// functions to execute at startup
+	var startupFuncs []func() error
+
 	// loop through all repos and and start monitoring
 	for i := range git {
 		repo := git.Repo(i)
@@ -37,28 +40,30 @@ func Setup(c *setup.Controller) (middleware.Middleware, error) {
 		// Install the url handler
 		if repo.HookUrl != "" {
 
-			c.OncePerServerBlock(func() error {
-				c.Startup = append(c.Startup, func() error {
-					return repo.Pull()
-				})
-				return nil
+			hookRepos = append(hookRepos, repo)
+
+			startupFuncs = append(startupFuncs, func() error {
+				return repo.Pull()
 			})
 
-			hookRepos = append(hookRepos, repo)
 		} else {
-			c.OncePerServerBlock(func() error {
-				c.Startup = append(c.Startup, func() error {
+			startupFuncs = append(startupFuncs, func() error {
 
-					// Start service routine in background
-					Start(repo)
+				// Start service routine in background
+				Start(repo)
 
-					// Do a pull right away to return error
-					return repo.Pull()
-				})
-				return nil
+				// Do a pull right away to return error
+				return repo.Pull()
 			})
 		}
 	}
+
+	// ensure the functions are executed once per server block
+	// for cases like server1.com, server2.com { ... }
+	c.OncePerServerBlock(func() error {
+		c.Startup = append(c.Startup, startupFuncs...)
+		return nil
+	})
 
 	// if there are repo(s) with webhook
 	// return handler
@@ -129,13 +134,20 @@ func parse(c *setup.Controller) (Git, error) {
 				if c.NextArg() {
 					repo.HookSecret = c.Val()
 				}
-
 			case "then":
-				thenArgs := c.RemainingArgs()
-				if len(thenArgs) == 0 {
+				if !c.NextArg() {
 					return nil, c.ArgErr()
 				}
-				repo.Then = strings.Join(thenArgs, " ")
+				command := c.Val()
+				args := c.RemainingArgs()
+				repo.Then = append(repo.Then, NewThen(command, args...))
+			case "then_long":
+				if !c.NextArg() {
+					return nil, c.ArgErr()
+				}
+				command := c.Val()
+				args := c.RemainingArgs()
+				repo.Then = append(repo.Then, NewLongThen(command, args...))
 			default:
 				return nil, c.ArgErr()
 			}

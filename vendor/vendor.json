@@ -9,13 +9,13 @@
 		},
 		{
 			"path": "github.com/abiosoft/caddy-git",
-			"revision": "16db8b7aa37199b75abd4ee35fc585b72e719cd2",
-			"revisionTime": "2015-11-23T13:47:34+01:00"
+			"revision": "1f8d259616ab394eb186fa18ece10d3496735d35",
+			"revisionTime": "2015-12-04T09:30:09+01:00"
 		},
 		{
 			"path": "github.com/abiosoft/caddy-git/gitos",
-			"revision": "16db8b7aa37199b75abd4ee35fc585b72e719cd2",
-			"revisionTime": "2015-11-23T13:47:34+01:00"
+			"revision": "1f8d259616ab394eb186fa18ece10d3496735d35",
+			"revisionTime": "2015-12-04T09:30:09+01:00"
 		},
 		{
 			"path": "github.com/captncraig/caddy-cmd",
@@ -39,8 +39,8 @@
 		},
 		{
 			"path": "github.com/gorilla/websocket",
-			"revision": "361d4c0ffd78338ebe0a9e6320cdbe115d7dc026",
-			"revisionTime": "2015-11-02T11:10:34-08:00"
+			"revision": "844dd6d40e1a9215ef4c8a204bfc839fcf5dd5dd",
+			"revisionTime": "2015-12-09T16:50:38-08:00"
 		},
 		{
 			"path": "github.com/hashicorp/go-syslog",
@@ -189,8 +189,8 @@
 		},
 		{
 			"path": "github.com/russross/blackfriday",
-			"revision": "e3cbadc5c960894017d53ecf49dba4c361dacddf",
-			"revisionTime": "2015-12-06T19:26:14+02:00"
+			"revision": "d18b67ae0afd61dae240896eae1785f00709aa31",
+			"revisionTime": "2015-12-12T19:18:59+02:00"
 		},
 		{
 			"path": "github.com/shurcooL/sanitized_anchor_name",
@@ -224,13 +224,13 @@
 		},
 		{
 			"path": "golang.org/x/net/http2",
-			"revision": "1796f9b8b7178e3c7587dff118d3bb9d37f9b0b3",
-			"revisionTime": "2015-12-08T22:22:07Z"
+			"revision": "d75b1902409c457a51e4bd1895031872c370983a",
+			"revisionTime": "2015-11-12T13:44:27+09:00"
 		},
 		{
 			"path": "golang.org/x/net/http2/hpack",
-			"revision": "1796f9b8b7178e3c7587dff118d3bb9d37f9b0b3",
-			"revisionTime": "2015-12-08T22:22:07Z"
+			"revision": "d75b1902409c457a51e4bd1895031872c370983a",
+			"revisionTime": "2015-11-12T13:44:27+09:00"
 		},
 		{
 			"path": "gopkg.in/natefinch/lumberjack.v2",
