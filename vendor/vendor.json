@@ -23,6 +23,11 @@
 			"revisionTime": "2015-12-24T00:49:06-07:00"
 		},
 		{
+			"path": "github.com/captncraig/caddy-realip",
+			"revision": "fe9a0376a72bbdaef233e8ab315d7c3be639e38c",
+			"revisionTime": "2016-01-09T15:01:04-07:00"
+		},
+		{
 			"path": "github.com/captncraig/caddy-stats",
 			"revision": "85364eafafcb338bd86ea135df2d88f9910a03b7",
 			"revisionTime": "2015-12-05T00:14:09-07:00"

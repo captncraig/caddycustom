@@ -1,15 +1,11 @@
 localhost:8787 {
-	root /etc
-	cmd /foo pwd
-	cmd /bar ls /Users/craig/b* {
-		ui /cmd
-		shell
-		description "Foo Bar"
-		method GET
-		timeout 15s
+	root testSite
+	realip {
+		from 0.0.0.0/0
 	}
-	cmd /baz {
-		exec ls -la
-		exec docker run -v `pwd`/foo:/foo golang:1.5.2
-	}
+	json foo.json render.tmpl
+}
+
+localhost:9797 {
+	proxy / localhost:8787
 }
