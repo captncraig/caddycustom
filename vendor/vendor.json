@@ -78,6 +78,11 @@
 			"revisionTime": "2014-04-01T15:37:05-05:00"
 		},
 		{
+			"path": "github.com/mholt/caddy",
+			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
+			"revisionTime": "2016-01-13T21:03:03-07:00"
+		},
+		{
 			"path": "github.com/mholt/caddy/caddy",
 			"revision": "6e340cb1d6debf00bfc208b28b27a4655285d2ba",
 			"revisionTime": "2016-01-16T00:46:45-07:00"
