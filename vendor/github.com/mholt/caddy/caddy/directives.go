@@ -42,8 +42,8 @@ func init() {
 var directiveOrder = []directive{
 	// Essential directives that initialize vital configuration settings
 	{"root", setup.Root},
-	{"tls", setup.TLS}, // letsencrypt is set up just after tls
 	{"bind", setup.BindHost},
+	{"tls", setup.TLS}, // letsencrypt is set up just after tls
 
 	// Other directives that don't create HTTP handlers
 	{"startup", setup.Startup},
@@ -66,22 +66,6 @@ var directiveOrder = []directive{
 	{"markdown", setup.Markdown},
 	{"templates", setup.Templates},
 	{"browse", setup.Browse},
-}
-
-//RegisterDirective will add the specified directive to caddy's directive stack. It will be inserted after the
-// specified middleware, or at the end if no match is found.
-func RegisterDirective(name string, setup SetupFunc, after string) {
-	dir := directive{name: name, setup: setup}
-	idx := len(directiveOrder)
-	for i := range directiveOrder {
-		if directiveOrder[i].name == after {
-			idx = i + 1
-			break
-		}
-	}
-	newDirectives := append(directiveOrder[:idx], append([]directive{dir}, directiveOrder[idx:]...)...)
-	directiveOrder = newDirectives
-	parse.ValidDirectives[name] = struct{}{}
 }
 
 // directive ties together a directive name with its setup function.

@@ -114,8 +114,10 @@ func newUser(email string) (User, error) {
 // address from the user to use for TLS for cfg. If it
 // cannot get an email address, it returns empty string.
 // (It will warn the user of the consequences of an
-// empty email.)
-func getEmail(cfg server.Config) string {
+// empty email.) If skipPrompt is true, the user will
+// NOT be prompted and an empty email will be returned
+// instead.
+func getEmail(cfg server.Config, skipPrompt bool) string {
 	// First try the tls directive from the Caddyfile
 	leEmail := cfg.TLS.LetsEncryptEmail
 	if leEmail == "" {
@@ -132,19 +134,16 @@ func getEmail(cfg server.Config) string {
 					continue
 				}
 				if mostRecent == nil || dir.ModTime().After(mostRecent.ModTime()) {
-					mostRecent = dir
+					leEmail = dir.Name()
 				}
-			}
-			if mostRecent != nil {
-				leEmail = mostRecent.Name()
 			}
 		}
 	}
-	if leEmail == "" {
+	if leEmail == "" && !skipPrompt {
 		// Alas, we must bother the user and ask for an email address;
 		// if they proceed they also agree to the SA.
 		reader := bufio.NewReader(stdin)
-		fmt.Println("Your sites will be served over HTTPS automatically using Let's Encrypt.")
+		fmt.Println("\nYour sites will be served over HTTPS automatically using Let's Encrypt.")
 		fmt.Println("By continuing, you agree to the Let's Encrypt Subscriber Agreement at:")
 		fmt.Println("  " + saURL) // TODO: Show current SA link
 		fmt.Println("Please enter your email address so you can recover your account if needed.")

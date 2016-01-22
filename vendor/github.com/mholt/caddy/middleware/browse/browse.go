@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"os"
@@ -36,7 +37,7 @@ type Config struct {
 	Template  *template.Template
 }
 
-// A Listing is used to fill out a template.
+// A Listing is the context used to fill out a template.
 type Listing struct {
 	// The name of the directory (the last element of the path)
 	Name string
@@ -50,6 +51,12 @@ type Listing struct {
 	// The items (files and folders) in the path
 	Items []FileInfo
 
+	// The number of directories in the listing
+	NumDirs int
+
+	// The number of files (items that aren't directories) in the listing
+	NumFiles int
+
 	// Which sorting order is used
 	Sort string
 
@@ -62,6 +69,33 @@ type Listing struct {
 	middleware.Context
 }
 
+// LinkedPath returns l.Path where every element is a clickable
+// link to the path up to that point so far.
+func (l Listing) LinkedPath() string {
+	if len(l.Path) == 0 {
+		return ""
+	}
+
+	// skip trailing slash
+	lpath := l.Path
+	if lpath[len(lpath)-1] == '/' {
+		lpath = lpath[:len(lpath)-1]
+	}
+
+	parts := strings.Split(lpath, "/")
+	var result string
+	for i, part := range parts {
+		if i == 0 && part == "" {
+			// Leading slash (root)
+			result += `<a href="/">/</a>`
+			continue
+		}
+		result += fmt.Sprintf(`<a href="%s/">%s</a>/`, strings.Join(parts[:i+1], "/"), part)
+	}
+
+	return result
+}
+
 // FileInfo is the info about a particular file or directory
 type FileInfo struct {
 	IsDir   bool
@@ -70,6 +104,17 @@ type FileInfo struct {
 	URL     string
 	ModTime time.Time
 	Mode    os.FileMode
+}
+
+// HumanSize returns the size of the file as a human-readable string
+// in IEC format (i.e. power of 2 or base 1024).
+func (fi FileInfo) HumanSize() string {
+	return humanize.IBytes(uint64(fi.Size))
+}
+
+// HumanModTime returns the modified time of the file as a human-readable string.
+func (fi FileInfo) HumanModTime(format string) string {
+	return fi.ModTime.Format(format)
 }
 
 // Implement sorting for Listing
@@ -127,20 +172,11 @@ func (l Listing) applySort() {
 	}
 }
 
-// HumanSize returns the size of the file as a human-readable string
-// in IEC format (i.e. power of 2 or base 1024).
-func (fi FileInfo) HumanSize() string {
-	return humanize.IBytes(uint64(fi.Size))
-}
-
-// HumanModTime returns the modified time of the file as a human-readable string.
-func (fi FileInfo) HumanModTime(format string) string {
-	return fi.ModTime.Format(format)
-}
-
 func directoryListing(files []os.FileInfo, r *http.Request, canGoUp bool, root string, ignoreIndexes bool, vars interface{}) (Listing, error) {
 	var fileinfos []FileInfo
+	var dirCount, fileCount int
 	var urlPath = r.URL.Path
+
 	for _, f := range files {
 		name := f.Name()
 
@@ -155,9 +191,12 @@ func directoryListing(files []os.FileInfo, r *http.Request, canGoUp bool, root s
 
 		if f.IsDir() {
 			name += "/"
+			dirCount++
+		} else {
+			fileCount++
 		}
 
-		url := url.URL{Path: name}
+		url := url.URL{Path: "./" + name} // prepend with "./" to fix paths with ':' in the name
 
 		fileinfos = append(fileinfos, FileInfo{
 			IsDir:   f.IsDir(),
@@ -170,10 +209,12 @@ func directoryListing(files []os.FileInfo, r *http.Request, canGoUp bool, root s
 	}
 
 	return Listing{
-		Name:    path.Base(urlPath),
-		Path:    urlPath,
-		CanGoUp: canGoUp,
-		Items:   fileinfos,
+		Name:     path.Base(urlPath),
+		Path:     urlPath,
+		CanGoUp:  canGoUp,
+		Items:    fileinfos,
+		NumDirs:  dirCount,
+		NumFiles: fileCount,
 		Context: middleware.Context{
 			Root: http.Dir(root),
 			Req:  r,

@@ -1,6 +1,7 @@
 package parse
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"path/filepath"
@@ -9,13 +10,13 @@ import (
 
 type parser struct {
 	Dispenser
-	block           serverBlock // current server block being parsed
+	block           ServerBlock // current server block being parsed
 	eof             bool        // if we encounter a valid EOF in a hard place
 	checkDirectives bool        // if true, directives must be known
 }
 
-func (p *parser) parseAll() ([]serverBlock, error) {
-	var blocks []serverBlock
+func (p *parser) parseAll() ([]ServerBlock, error) {
+	var blocks []ServerBlock
 
 	for p.Next() {
 		err := p.parseOne()
@@ -31,7 +32,7 @@ func (p *parser) parseAll() ([]serverBlock, error) {
 }
 
 func (p *parser) parseOne() error {
-	p.block = serverBlock{Tokens: make(map[string][]token)}
+	p.block = ServerBlock{Tokens: make(map[string][]token)}
 
 	err := p.begin()
 	if err != nil {
@@ -99,11 +100,11 @@ func (p *parser) addresses() error {
 			}
 
 			// Parse and save this address
-			host, port, err := standardAddress(tkn)
+			addr, err := standardAddress(tkn)
 			if err != nil {
 				return err
 			}
-			p.block.Addresses = append(p.block.Addresses, address{host, port})
+			p.block.Addresses = append(p.block.Addresses, addr)
 		}
 
 		// Advance token and possibly break out of loop or return error
@@ -176,39 +177,69 @@ func (p *parser) directives() error {
 }
 
 // doImport swaps out the import directive and its argument
-// (a total of 2 tokens) with the tokens in the file specified.
-// When the function returns, the cursor is on the token before
-// where the import directive was. In other words, call Next()
-// to access the first token that was imported.
+// (a total of 2 tokens) with the tokens in the specified file
+// or globbing pattern. When the function returns, the cursor
+// is on the token before where the import directive was. In
+// other words, call Next() to access the first token that was
+// imported.
 func (p *parser) doImport() error {
+	// syntax check
 	if !p.NextArg() {
 		return p.ArgErr()
 	}
-	importFile := p.Val()
+	importPattern := p.Val()
 	if p.NextArg() {
-		return p.Err("Import allows only one file to import")
+		return p.Err("Import takes only one argument (glob pattern or file)")
 	}
 
+	// do glob
+	matches, err := filepath.Glob(importPattern)
+	if err != nil {
+		return p.Errf("Failed to use import pattern %s: %v", importPattern, err)
+	}
+	if len(matches) == 0 {
+		return p.Errf("No files matching import pattern %s", importPattern)
+	}
+
+	// splice out the import directive and its argument (2 tokens total)
+	tokensBefore := p.tokens[:p.cursor-1]
+	tokensAfter := p.tokens[p.cursor+1:]
+
+	// collect all the imported tokens
+	var importedTokens []token
+	for _, importFile := range matches {
+		newTokens, err := p.doSingleImport(importFile)
+		if err != nil {
+			return err
+		}
+		importedTokens = append(importedTokens, newTokens...)
+	}
+
+	// splice the imported tokens in the place of the import statement
+	// and rewind cursor so Next() will land on first imported token
+	p.tokens = append(tokensBefore, append(importedTokens, tokensAfter...)...)
+	p.cursor--
+
+	return nil
+}
+
+// doSingleImport lexes the individual file at importFile and returns
+// its tokens or an error, if any.
+func (p *parser) doSingleImport(importFile string) ([]token, error) {
 	file, err := os.Open(importFile)
 	if err != nil {
-		return p.Errf("Could not import %s - %v", importFile, err)
+		return nil, p.Errf("Could not import %s: %v", importFile, err)
 	}
 	defer file.Close()
 	importedTokens := allTokens(file)
 
-	// Tack the filename onto these tokens so any errors show the imported file's name
+	// Tack the filename onto these tokens so errors show the imported file's name
+	filename := filepath.Base(importFile)
 	for i := 0; i < len(importedTokens); i++ {
-		importedTokens[i].file = filepath.Base(importFile)
+		importedTokens[i].file = filename
 	}
 
-	// Splice out the import directive and its argument (2 tokens total)
-	// and insert the imported tokens in their place.
-	tokensBefore := p.tokens[:p.cursor-1]
-	tokensAfter := p.tokens[p.cursor+1:]
-	p.tokens = append(tokensBefore, append(importedTokens, tokensAfter...)...)
-	p.cursor-- // cursor was advanced one position to read the filename; rewind it
-
-	return nil
+	return importedTokens, nil
 }
 
 // directive collects tokens until the directive's scope
@@ -273,39 +304,62 @@ func (p *parser) closeCurlyBrace() error {
 	return nil
 }
 
-// standardAddress turns the accepted host and port patterns
-// into a format accepted by net.Dial.
-func standardAddress(str string) (host, port string, err error) {
-	var schemePort, splitPort string
+// standardAddress parses an address string into a structured format with separate
+// scheme, host, and port portions, as well as the original input string.
+func standardAddress(str string) (address, error) {
+	var scheme string
+	var err error
 
+	// first check for scheme and strip it off
+	input := str
 	if strings.HasPrefix(str, "https://") {
-		schemePort = "https"
+		scheme = "https"
 		str = str[8:]
 	} else if strings.HasPrefix(str, "http://") {
-		schemePort = "http"
+		scheme = "http"
 		str = str[7:]
 	}
 
-	host, splitPort, err = net.SplitHostPort(str)
+	// separate host and port
+	host, port, err := net.SplitHostPort(str)
 	if err != nil {
-		host, splitPort, err = net.SplitHostPort(str + ":") // tack on empty port
-	}
-	if err != nil {
-		// ¯\_(ツ)_/¯
-		host = str
+		host, port, err = net.SplitHostPort(str + ":")
+		// no error check here; return err at end of function
 	}
 
-	if splitPort != "" {
-		port = splitPort
-	} else {
-		port = schemePort
+	// see if we can set port based off scheme
+	if port == "" {
+		if scheme == "http" {
+			port = "80"
+		} else if scheme == "https" {
+			port = "443"
+		}
 	}
 
-	return
+	// repeated or conflicting scheme is confusing, so error
+	if scheme != "" && (port == "http" || port == "https") {
+		return address{}, fmt.Errorf("[%s] scheme specified twice in address", input)
+	}
+
+	// error if scheme and port combination violate convention
+	if (scheme == "http" && port == "443") || (scheme == "https" && port == "80") {
+		return address{}, fmt.Errorf("[%s] scheme and port violate convention", input)
+	}
+
+	// standardize http and https ports to their respective port numbers
+	if port == "http" {
+		scheme = "http"
+		port = "80"
+	} else if port == "https" {
+		scheme = "https"
+		port = "443"
+	}
+
+	return address{Original: input, Scheme: scheme, Host: host, Port: port}, err
 }
 
 // replaceEnvVars replaces environment variables that appear in the token
-// and understands both the Unix $SYNTAX and Windows %SYNTAX%.
+// and understands both the $UNIX and %WINDOWS% syntaxes.
 func replaceEnvVars(s string) string {
 	s = replaceEnvReferences(s, "{%", "%}")
 	s = replaceEnvReferences(s, "{$", "}")
@@ -330,26 +384,26 @@ func replaceEnvReferences(s, refStart, refEnd string) string {
 }
 
 type (
-	// serverBlock associates tokens with a list of addresses
+	// ServerBlock associates tokens with a list of addresses
 	// and groups tokens by directive name.
-	serverBlock struct {
+	ServerBlock struct {
 		Addresses []address
 		Tokens    map[string][]token
 	}
 
 	address struct {
-		Host, Port string
+		Original, Scheme, Host, Port string
 	}
 )
 
-// HostList converts the list of addresses (hosts)
-// that are associated with this server block into
-// a slice of strings. Each string is a host:port
-// combination.
-func (sb serverBlock) HostList() []string {
+// HostList converts the list of addresses that are
+// associated with this server block into a slice of
+// strings, where each address is as it was originally
+// read from the input.
+func (sb ServerBlock) HostList() []string {
 	sbHosts := make([]string, len(sb.Addresses))
 	for j, addr := range sb.Addresses {
-		sbHosts[j] = net.JoinHostPort(addr.Host, addr.Port)
+		sbHosts[j] = addr.Original
 	}
 	return sbHosts
 }

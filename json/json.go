@@ -31,6 +31,7 @@ func Setup(c *setup.Controller) (middleware.Middleware, error) {
 }
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) (int, error) {
+	panic("AAA")
 	fmt.Println(r.URL.Path)
 	for path, templatePath := range h.handlers {
 		if !middleware.Path(r.URL.Path).Matches(path) {

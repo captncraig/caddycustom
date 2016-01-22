@@ -1,9 +1,9 @@
 package realip
 
 import (
-	"fmt"
 	"net"
 	"net/http"
+	"strings"
 
 	"github.com/mholt/caddy/middleware"
 )
@@ -19,25 +19,25 @@ func (m *module) ServeHTTP(w http.ResponseWriter, req *http.Request) (int, error
 
 func (r *rule) handle(w http.ResponseWriter, req *http.Request, next middleware.Handler) (int, error) {
 	validSource := false
-	fmt.Printf("REQ FROM: %s\n", req.RemoteAddr)
-	fmt.Printf("HEADER: %s\n", req.Header.Get(r.header))
 	host, port, err := net.SplitHostPort(req.RemoteAddr)
 	if err != nil {
-		next.ServeHTTP(w, req) // invalid remote ip, not sure what to do here. Maybe an error would be more appropriate if we only expect requests from known sources
+		return next.ServeHTTP(w, req) // invalid remote ip. Change nothing and let next deal with it.
 	}
 	reqIP := net.ParseIP(host)
 	if reqIP == nil {
-		next.ServeHTTP(w, req) //same as above
+		return next.ServeHTTP(w, req) //same as above.
 	}
 	for _, from := range r.from {
 		if from.Contains(reqIP) {
 			validSource = true
 		}
 	}
-	//TODO: reject if not from known source?
 	if hVal := req.Header.Get(r.header); validSource && hVal != "" {
-		req.RemoteAddr = hVal + ":" + port
-		fmt.Printf("MODIFIED: %s\n", req.RemoteAddr)
+		//restore original host:port format
+		leftMost := strings.Split(hVal, ",")[0]
+		if net.ParseIP(leftMost) != nil {
+			req.RemoteAddr = leftMost + ":" + port
+		}
 	}
 	return next.ServeHTTP(w, req)
 }

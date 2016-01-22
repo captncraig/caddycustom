@@ -1,11 +1,8 @@
-localhost:8787 {
-	root testSite
-	realip {
-		from 0.0.0.0/0
-	}
-	json foo.json render.tmpl
-}
 
-localhost:9797 {
-	proxy / localhost:8787
+:8787 {
+	json a b
+	root testSite
+	git https://github.com/captncraig/ignorethis.git repopath {
+		hook /whatever Yqj7BsEahRabSQZNyM6i
+	}
 }
