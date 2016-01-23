@@ -9,13 +9,13 @@
 		},
 		{
 			"path": "github.com/abiosoft/caddy-git",
-			"revision": "4a7e015a1337d3af6ac3e8375a26a213efeb0f62",
-			"revisionTime": "2016-01-19T13:20:00-07:00"
+			"revision": "4b6d854d5bfef4fc93765923eff92525533e0cce",
+			"revisionTime": "2016-01-21T00:17:53+01:00"
 		},
 		{
 			"path": "github.com/abiosoft/caddy-git/gitos",
-			"revision": "4a7e015a1337d3af6ac3e8375a26a213efeb0f62",
-			"revisionTime": "2016-01-19T13:20:00-07:00"
+			"revision": "4b6d854d5bfef4fc93765923eff92525533e0cce",
+			"revisionTime": "2016-01-21T00:17:53+01:00"
 		},
 		{
 			"path": "github.com/captncraig/caddy-cmd",
