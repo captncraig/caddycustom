@@ -27,7 +27,7 @@ type Upstream interface {
 	// Selects an upstream host to be routed to.
 	Select() *UpstreamHost
 	// Checks if subpath is not an ignored path
-	IsAllowedPath(string) bool
+	AllowedPath(string) bool
 }
 
 // UpstreamHostDownFunc can be used to customize how Down behaves.
@@ -44,6 +44,7 @@ type UpstreamHost struct {
 	ExtraHeaders      http.Header
 	CheckDown         UpstreamHostDownFunc
 	WithoutPathPrefix string
+	MaxConns          int64
 }
 
 // Down checks whether the upstream host is down or not.
@@ -57,24 +58,40 @@ func (uh *UpstreamHost) Down() bool {
 	return uh.CheckDown(uh)
 }
 
+// Full checks whether the upstream host has reached its maximum connections
+func (uh *UpstreamHost) Full() bool {
+	return uh.MaxConns > 0 && uh.Conns >= uh.MaxConns
+}
+
+// Available checks whether the upstream host is available for proxying to
+func (uh *UpstreamHost) Available() bool {
+	return !uh.Down() && !uh.Full()
+}
+
+// tryDuration is how long to try upstream hosts; failures result in
+// immediate retries until this duration ends or we get a nil host.
+var tryDuration = 60 * time.Second
+
 // ServeHTTP satisfies the middleware.Handler interface.
 func (p Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) (int, error) {
-
 	for _, upstream := range p.Upstreams {
-		if middleware.Path(r.URL.Path).Matches(upstream.From()) && upstream.IsAllowedPath(r.URL.Path) {
+		if middleware.Path(r.URL.Path).Matches(upstream.From()) && upstream.AllowedPath(r.URL.Path) {
 			var replacer middleware.Replacer
 			start := time.Now()
 			requestHost := r.Host
 
 			// Since Select() should give us "up" hosts, keep retrying
 			// hosts until timeout (or until we get a nil host).
-			for time.Now().Sub(start) < (60 * time.Second) {
+			for time.Now().Sub(start) < tryDuration {
 				host := upstream.Select()
 				if host == nil {
 					return http.StatusBadGateway, errUnreachable
 				}
 				proxy := host.ReverseProxy
 				r.Host = host.Name
+				if rr, ok := w.(*middleware.ResponseRecorder); ok && rr.Replacer != nil {
+					rr.Replacer.Set("upstream", host.Name)
+				}
 
 				if baseURL, err := url.Parse(host.Name); err == nil {
 					r.Host = baseURL.Host

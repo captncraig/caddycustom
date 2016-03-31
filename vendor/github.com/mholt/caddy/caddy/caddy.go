@@ -26,9 +26,10 @@ import (
 	"path"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
-	"github.com/mholt/caddy/caddy/letsencrypt"
+	"github.com/mholt/caddy/caddy/https"
 	"github.com/mholt/caddy/server"
 )
 
@@ -44,13 +45,18 @@ var (
 	Quiet bool
 
 	// HTTP2 indicates whether HTTP2 is enabled or not.
-	HTTP2 bool // TODO: temporary flag until http2 is standard
+	HTTP2 bool
 
 	// PidFile is the path to the pidfile to create.
 	PidFile string
 
 	// GracefulTimeout is the maximum duration of a graceful shutdown.
 	GracefulTimeout time.Duration
+
+	// RestartMode is the mode used for restart,
+	// "inproc" will restart in process,
+	// otherwise default behavior is used (inproc on Windows, fork on Linux).
+	RestartMode = ""
 )
 
 var (
@@ -154,6 +160,15 @@ func Start(cdyfile Input) (err error) {
 	}
 	startedBefore = true
 
+	showInitializationOutput(groupings)
+
+	return nil
+}
+
+// showInitializationOutput just outputs some basic information about
+// what is being served to stdout, as well as any applicable, non-essential
+// warnings for the user.
+func showInitializationOutput(groupings bindingGroup) {
 	// Show initialization output
 	if !Quiet && !IsRestart() {
 		var checkedFdLimit bool
@@ -174,8 +189,6 @@ func Start(cdyfile Input) (err error) {
 			}
 		}
 	}
-
-	return nil
 }
 
 // startServers starts all the servers in groupings,
@@ -191,8 +204,13 @@ func startServers(groupings bindingGroup) error {
 		if err != nil {
 			return err
 		}
-		s.HTTP2 = HTTP2                             // TODO: This setting is temporary
-		s.ReqCallback = letsencrypt.RequestCallback // ensures we can solve ACME challenges while running
+		s.HTTP2 = HTTP2
+		s.ReqCallback = https.RequestCallback // ensures we can solve ACME challenges while running
+		if s.OnDemandTLS {
+			s.TLSConfig.GetCertificate = https.GetOrObtainCertificate // TLS on demand -- awesome!
+		} else {
+			s.TLSConfig.GetCertificate = https.GetCertificate
+		}
 
 		var ln server.ListenerFile
 		if IsRestart() {
@@ -277,7 +295,7 @@ func startServers(groupings bindingGroup) error {
 // It does NOT execute shutdown callbacks that may have been
 // configured by middleware (they must be executed separately).
 func Stop() error {
-	letsencrypt.Deactivate()
+	https.Deactivate()
 
 	serversMu.Lock()
 	for _, s := range servers {
@@ -312,6 +330,7 @@ func LoadCaddyfile(loader func() (Input, error)) (cdyfile Input, err error) {
 			return nil, err
 		}
 		cdyfile = loadedGob.Caddyfile
+		atomic.StoreInt32(https.OnDemandIssuedCount, loadedGob.OnDemandTLSCertsIssued)
 	}
 
 	// Try user's loader

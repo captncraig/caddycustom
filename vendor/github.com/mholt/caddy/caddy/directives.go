@@ -1,6 +1,7 @@
 package caddy
 
 import (
+	"github.com/mholt/caddy/caddy/https"
 	"github.com/mholt/caddy/caddy/parse"
 	"github.com/mholt/caddy/caddy/setup"
 	"github.com/mholt/caddy/middleware"
@@ -43,7 +44,7 @@ var directiveOrder = []directive{
 	// Essential directives that initialize vital configuration settings
 	{"root", setup.Root},
 	{"bind", setup.BindHost},
-	{"tls", setup.TLS}, // letsencrypt is set up just after tls
+	{"tls", https.Setup},
 
 	// Other directives that don't create HTTP handlers
 	{"startup", setup.Startup},
@@ -60,12 +61,23 @@ var directiveOrder = []directive{
 	{"mime", setup.Mime},
 	{"basicauth", setup.BasicAuth},
 	{"internal", setup.Internal},
+	{"pprof", setup.PProf},
+	{"expvar", setup.ExpVar},
 	{"proxy", setup.Proxy},
 	{"fastcgi", setup.FastCGI},
 	{"websocket", setup.WebSocket},
 	{"markdown", setup.Markdown},
 	{"templates", setup.Templates},
 	{"browse", setup.Browse},
+}
+
+// Directives returns the list of directives in order of priority.
+func Directives() []string {
+	directives := make([]string, len(directiveOrder))
+	for i, d := range directiveOrder {
+		directives[i] = d.name
+	}
+	return directives
 }
 
 // RegisterDirective adds the given directive to caddy's list of directives.

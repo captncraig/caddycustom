@@ -1,8 +1,8 @@
+// Package acme implements the ACME protocol for Let's Encrypt and other conforming providers.
 package acme
 
 import (
 	"crypto"
-	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
@@ -37,7 +37,7 @@ func logf(format string, args ...interface{}) {
 type User interface {
 	GetEmail() string
 	GetRegistration() *RegistrationResource
-	GetPrivateKey() *rsa.PrivateKey
+	GetPrivateKey() crypto.PrivateKey
 }
 
 // Interface for all challenge solvers to implement.
@@ -52,22 +52,18 @@ type Client struct {
 	directory  directory
 	user       User
 	jws        *jws
-	keyBits    int
+	keyType    KeyType
 	issuerCert []byte
-	solvers    map[string]solver
+	solvers    map[Challenge]solver
 }
 
 // NewClient creates a new ACME client on behalf of the user. The client will depend on
 // the ACME directory located at caDirURL for the rest of its actions. It will
 // generate private keys for certificates of size keyBits.
-func NewClient(caDirURL string, user User, keyBits int) (*Client, error) {
+func NewClient(caDirURL string, user User, keyType KeyType) (*Client, error) {
 	privKey := user.GetPrivateKey()
 	if privKey == nil {
 		return nil, errors.New("private key was nil")
-	}
-
-	if err := privKey.Validate(); err != nil {
-		return nil, fmt.Errorf("invalid private key: %v", err)
 	}
 
 	var dir directory
@@ -93,11 +89,26 @@ func NewClient(caDirURL string, user User, keyBits int) (*Client, error) {
 	// REVIEW: best possibility?
 	// Add all available solvers with the right index as per ACME
 	// spec to this map. Otherwise they won`t be found.
-	solvers := make(map[string]solver)
-	solvers["http-01"] = &httpChallenge{jws: jws, validate: validate}
-	solvers["tls-sni-01"] = &tlsSNIChallenge{jws: jws, validate: validate}
+	solvers := make(map[Challenge]solver)
+	solvers[HTTP01] = &httpChallenge{jws: jws, validate: validate, provider: &HTTPProviderServer{}}
+	solvers[TLSSNI01] = &tlsSNIChallenge{jws: jws, validate: validate, provider: &TLSProviderServer{}}
 
-	return &Client{directory: dir, user: user, jws: jws, keyBits: keyBits, solvers: solvers}, nil
+	return &Client{directory: dir, user: user, jws: jws, keyType: keyType, solvers: solvers}, nil
+}
+
+// SetChallengeProvider specifies a custom provider that will make the solution available
+func (c *Client) SetChallengeProvider(challenge Challenge, p ChallengeProvider) error {
+	switch challenge {
+	case HTTP01:
+		c.solvers[challenge] = &httpChallenge{jws: c.jws, validate: validate, provider: p}
+	case TLSSNI01:
+		c.solvers[challenge] = &tlsSNIChallenge{jws: c.jws, validate: validate, provider: p}
+	case DNS01:
+		c.solvers[challenge] = &dnsChallenge{jws: c.jws, validate: validate, provider: p}
+	default:
+		return fmt.Errorf("Unknown challenge %v", challenge)
+	}
+	return nil
 }
 
 // SetHTTPAddress specifies a custom interface:port to be used for HTTP based challenges.
@@ -109,9 +120,8 @@ func (c *Client) SetHTTPAddress(iface string) error {
 		return err
 	}
 
-	if chlng, ok := c.solvers["http-01"]; ok {
-		chlng.(*httpChallenge).iface = host
-		chlng.(*httpChallenge).port = port
+	if chlng, ok := c.solvers[HTTP01]; ok {
+		chlng.(*httpChallenge).provider = NewHTTPProviderServer(host, port)
 	}
 
 	return nil
@@ -126,21 +136,17 @@ func (c *Client) SetTLSAddress(iface string) error {
 		return err
 	}
 
-	if chlng, ok := c.solvers["tls-sni-01"]; ok {
-		chlng.(*tlsSNIChallenge).iface = host
-		chlng.(*tlsSNIChallenge).port = port
+	if chlng, ok := c.solvers[TLSSNI01]; ok {
+		chlng.(*tlsSNIChallenge).provider = NewTLSProviderServer(host, port)
 	}
-
 	return nil
 }
 
 // ExcludeChallenges explicitly removes challenges from the pool for solving.
-func (c *Client) ExcludeChallenges(challenges []string) {
+func (c *Client) ExcludeChallenges(challenges []Challenge) {
 	// Loop through all challenges and delete the requested one if found.
 	for _, challenge := range challenges {
-		if _, ok := c.solvers[challenge]; ok {
-			delete(c.solvers, challenge)
-		}
+		delete(c.solvers, challenge)
 	}
 }
 
@@ -186,8 +192,10 @@ func (c *Client) Register() (*RegistrationResource, error) {
 // AgreeToTOS updates the Client registration and sends the agreement to
 // the server.
 func (c *Client) AgreeToTOS() error {
-	c.user.GetRegistration().Body.Agreement = c.user.GetRegistration().TosURL
-	c.user.GetRegistration().Body.Resource = "reg"
+	reg := c.user.GetRegistration()
+
+	reg.Body.Agreement = c.user.GetRegistration().TosURL
+	reg.Body.Resource = "reg"
 	_, err := postJSON(c.jws, c.user.GetRegistration().URI, c.user.GetRegistration().Body, nil)
 	return err
 }
@@ -305,13 +313,12 @@ func (c *Client) RenewCertificate(cert CertificateResource, bundle bool) (Certif
 			links := parseLinks(resp.Header["Link"])
 			issuerCert, err := c.getIssuerCertificate(links["up"])
 			if err != nil {
-				// If we fail to aquire the issuer cert, return the issued certificate - do not fail.
+				// If we fail to acquire the issuer cert, return the issued certificate - do not fail.
 				logf("[ERROR][%s] acme: Could not bundle issuer certificate: %v", cert.Domain, err)
 			} else {
 				// Success - append the issuer cert to the issued cert.
 				issuerCert = pemEncode(derCertificateBytes(issuerCert))
 				issuedCert = append(issuedCert, issuerCert...)
-				cert.Certificate = issuedCert
 			}
 		}
 
@@ -327,7 +334,22 @@ func (c *Client) RenewCertificate(cert CertificateResource, bundle bool) (Certif
 		}
 	}
 
-	newCert, failures := c.ObtainCertificate([]string{cert.Domain}, bundle, privKey)
+	var domains []string
+	var failures map[string]error
+	// check for SAN certificate
+	if len(x509Cert.DNSNames) > 1 {
+		domains = append(domains, x509Cert.Subject.CommonName)
+		for _, sanDomain := range x509Cert.DNSNames {
+			if sanDomain == x509Cert.Subject.CommonName {
+				continue
+			}
+			domains = append(domains, sanDomain)
+		}
+	} else {
+		domains = append(domains, x509Cert.Subject.CommonName)
+	}
+
+	newCert, failures := c.ObtainCertificate(domains, bundle, privKey)
 	return newCert, failures[cert.Domain]
 }
 
@@ -431,7 +453,7 @@ func (c *Client) requestCertificate(authz []authorizationResource, bundle bool, 
 	commonName := authz[0]
 	var err error
 	if privKey == nil {
-		privKey, err = generatePrivateKey(rsakey, c.keyBits)
+		privKey, err = generatePrivateKey(c.keyType)
 		if err != nil {
 			return CertificateResource{}, err
 		}
@@ -445,7 +467,7 @@ func (c *Client) requestCertificate(authz []authorizationResource, bundle bool, 
 	}
 
 	// TODO: should the CSR be customizable?
-	csr, err := generateCsr(privKey.(*rsa.PrivateKey), commonName.Domain, san)
+	csr, err := generateCsr(privKey, commonName.Domain, san)
 	if err != nil {
 		return CertificateResource{}, err
 	}
@@ -482,6 +504,7 @@ func (c *Client) requestCertificate(authz []authorizationResource, bundle bool, 
 			if len(cert) > 0 {
 
 				cerRes.CertStableURL = resp.Header.Get("Content-Location")
+				cerRes.AccountRef = c.user.GetRegistration().URI
 
 				issuedCert := pemEncode(derCertificateBytes(cert))
 				// If bundle is true, we want to return a certificate bundle.
@@ -492,7 +515,7 @@ func (c *Client) requestCertificate(authz []authorizationResource, bundle bool, 
 					links := parseLinks(resp.Header["Link"])
 					issuerCert, err := c.getIssuerCertificate(links["up"])
 					if err != nil {
-						// If we fail to aquire the issuer cert, return the issued certificate - do not fail.
+						// If we fail to acquire the issuer cert, return the issued certificate - do not fail.
 						logf("[WARNING][%s] acme: Could not bundle issuer certificate: %v", commonName.Domain, err)
 					} else {
 						// Success - append the issuer cert to the issued cert.

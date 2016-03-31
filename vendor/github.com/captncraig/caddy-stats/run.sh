@@ -1,1 +1,0 @@
-caddydev -s $GOPATH/src/github.com/captncraig/caddy-stats stats -log stdout -conf testSite/Caddyfile -root testSite

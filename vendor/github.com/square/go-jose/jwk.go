@@ -21,7 +21,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rsa"
-	"encoding/json"
 	"fmt"
 	"math/big"
 	"reflect"
@@ -88,13 +87,13 @@ func (k JsonWebKey) MarshalJSON() ([]byte, error) {
 	raw.Alg = k.Algorithm
 	raw.Use = k.Use
 
-	return json.Marshal(raw)
+	return MarshalJSON(raw)
 }
 
 // UnmarshalJSON reads a key from its JSON representation.
 func (k *JsonWebKey) UnmarshalJSON(data []byte) (err error) {
 	var raw rawJsonWebKey
-	err = json.Unmarshal(data, &raw)
+	err = UnmarshalJSON(data, &raw)
 	if err != nil {
 		return err
 	}

@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -9,6 +10,8 @@ import (
 	"strings"
 	"text/template"
 	"time"
+
+	"github.com/russross/blackfriday"
 )
 
 // This file contains the context and functions available for
@@ -18,35 +21,12 @@ import (
 type Context struct {
 	Root http.FileSystem
 	Req  *http.Request
-	// This is used to access information about the URL.
-	URL *url.URL
+	URL  *url.URL
 }
 
-// Include returns the contents of filename relative to the site root
+// Include returns the contents of filename relative to the site root.
 func (c Context) Include(filename string) (string, error) {
-	file, err := c.Root.Open(filename)
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	body, err := ioutil.ReadAll(file)
-	if err != nil {
-		return "", err
-	}
-
-	tpl, err := template.New(filename).Parse(string(body))
-	if err != nil {
-		return "", err
-	}
-
-	var buf bytes.Buffer
-	err = tpl.Execute(&buf, c)
-	if err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
+	return ContextInclude(filename, c, c.Root)
 }
 
 // Now returns the current timestamp in the specified format.
@@ -130,10 +110,16 @@ func (c Context) PathMatches(pattern string) bool {
 	return Path(c.Req.URL.Path).Matches(pattern)
 }
 
-// Truncate truncates the input string to the given length. If
-// input is shorter than length, the entire string is returned.
+// Truncate truncates the input string to the given length.
+// If length is negative, it returns that many characters
+// starting from the end of the string. If the absolute value
+// of length is greater than len(input), the whole input is
+// returned.
 func (c Context) Truncate(input string, length int) string {
-	if len(input) > length {
+	if length < 0 && len(input)+length > 0 {
+		return input[len(input)+length:]
+	}
+	if length >= 0 && len(input) > length {
 		return input[:length]
 	}
 	return input
@@ -168,7 +154,6 @@ func (c Context) StripHTML(s string) string {
 	if inTag {
 		// false start
 		buf.WriteString(s[tagStart:])
-		inTag = false
 	}
 	return buf.String()
 }
@@ -189,4 +174,86 @@ func (c Context) StripExt(path string) string {
 // Replace replaces instances of find in input with replacement.
 func (c Context) Replace(input, find, replacement string) string {
 	return strings.Replace(input, find, replacement, -1)
+}
+
+// Markdown returns the HTML contents of the markdown contained in filename
+// (relative to the site root).
+func (c Context) Markdown(filename string) (string, error) {
+	body, err := c.Include(filename)
+	if err != nil {
+		return "", err
+	}
+	renderer := blackfriday.HtmlRenderer(0, "", "")
+	extns := blackfriday.EXTENSION_TABLES | blackfriday.EXTENSION_FENCED_CODE | blackfriday.EXTENSION_STRIKETHROUGH | blackfriday.EXTENSION_DEFINITION_LISTS
+	markdown := blackfriday.Markdown([]byte(body), renderer, extns)
+
+	return string(markdown), nil
+}
+
+// ContextInclude opens filename using fs and executes a template with the context ctx.
+// This does the same thing that Context.Include() does, but with the ability to provide
+// your own context so that the included files can have access to additional fields your
+// type may provide. You can embed Context in your type, then override its Include method
+// to call this function with ctx being the instance of your type, and fs being Context.Root.
+func ContextInclude(filename string, ctx interface{}, fs http.FileSystem) (string, error) {
+	file, err := fs.Open(filename)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	body, err := ioutil.ReadAll(file)
+	if err != nil {
+		return "", err
+	}
+
+	tpl, err := template.New(filename).Parse(string(body))
+	if err != nil {
+		return "", err
+	}
+
+	var buf bytes.Buffer
+	err = tpl.Execute(&buf, ctx)
+	if err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
+}
+
+// ToLower will convert the given string to lower case.
+func (c Context) ToLower(s string) string {
+	return strings.ToLower(s)
+}
+
+// ToUpper will convert the given string to upper case.
+func (c Context) ToUpper(s string) string {
+	return strings.ToUpper(s)
+}
+
+// Split is a passthrough to strings.Split. It will split the first argument at each instance of the seperator and return a slice of strings.
+func (c Context) Split(s string, sep string) []string {
+	return strings.Split(s, sep)
+}
+
+// Slice will convert the given arguments into a slice.
+func (c Context) Slice(elems ...interface{}) []interface{} {
+	return elems
+}
+
+// Map will convert the arguments into a map. It expects alternating string keys and values. This is useful for building more complicated data structures
+// if you are using subtemplates or things like that.
+func (c Context) Map(values ...interface{}) (map[string]interface{}, error) {
+	if len(values)%2 != 0 {
+		return nil, fmt.Errorf("Map expects an even number of arguments")
+	}
+	dict := make(map[string]interface{}, len(values)/2)
+	for i := 0; i < len(values); i += 2 {
+		key, ok := values[i].(string)
+		if !ok {
+			return nil, fmt.Errorf("Map keys must be strings")
+		}
+		dict[key] = values[i+1]
+	}
+	return dict, nil
 }

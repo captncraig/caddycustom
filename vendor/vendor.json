@@ -4,38 +4,8 @@
 	"package": [
 		{
 			"path": "github.com/BurntSushi/toml",
-			"revision": "5c4df71dfe9ac89ef6287afc05e4c1b16ae65a1e",
-			"revisionTime": "2016-01-02T09:47:48-05:00"
-		},
-		{
-			"path": "github.com/abiosoft/caddy-git",
-			"revision": "4b6d854d5bfef4fc93765923eff92525533e0cce",
-			"revisionTime": "2016-01-21T00:17:53+01:00"
-		},
-		{
-			"path": "github.com/abiosoft/caddy-git/gitos",
-			"revision": "4b6d854d5bfef4fc93765923eff92525533e0cce",
-			"revisionTime": "2016-01-21T00:17:53+01:00"
-		},
-		{
-			"path": "github.com/captncraig/caddy-cmd",
-			"revision": "867295e5567d7e501ef27d783a673b311816ce02",
-			"revisionTime": "2015-12-24T00:49:06-07:00"
-		},
-		{
-			"path": "github.com/captncraig/caddy-realip",
-			"revision": "95d935a4a7f41b1b34051f42c4b221e7f74d2d88",
-			"revisionTime": "2016-01-22T16:46:18-07:00"
-		},
-		{
-			"path": "github.com/captncraig/caddy-stats",
-			"revision": "85364eafafcb338bd86ea135df2d88f9910a03b7",
-			"revisionTime": "2015-12-05T00:14:09-07:00"
-		},
-		{
-			"path": "github.com/crackcomm/cloudflare",
-			"revision": "d872e84a393cdd91b2314c61b3fbefc2aa66927b",
-			"revisionTime": "2015-12-27T15:09:42+01:00"
+			"revision": "bbd5bb678321a0d6e58f1099321dfa73391c1b6f",
+			"revisionTime": "2016-03-08T18:19:12-08:00"
 		},
 		{
 			"path": "github.com/dustin/go-humanize",
@@ -49,28 +19,13 @@
 		},
 		{
 			"path": "github.com/gorilla/websocket",
-			"revision": "5434f8b69b7f4f4ef0120e04c046cd6ce54ef0dd",
-			"revisionTime": "2016-01-19T18:24:46-08:00"
+			"revision": "e2e3d8414d0fbae04004f151979f4e27c6747fe7",
+			"revisionTime": "2016-03-13T11:57:37-07:00"
 		},
 		{
 			"path": "github.com/hashicorp/go-syslog",
 			"revision": "42a2b573b664dbf281bd48c3cc12c086b17a39ba",
 			"revisionTime": "2015-02-18T13:19:46-05:00"
-		},
-		{
-			"path": "github.com/influxdb/influxdb/client/v2",
-			"revision": "3b035ccaea1c270118d8647d4905691d15bfa93e",
-			"revisionTime": "2015-11-25T15:14:19-07:00"
-		},
-		{
-			"path": "github.com/influxdb/influxdb/models",
-			"revision": "3b035ccaea1c270118d8647d4905691d15bfa93e",
-			"revisionTime": "2015-11-25T15:14:19-07:00"
-		},
-		{
-			"path": "github.com/influxdb/influxdb/pkg/escape",
-			"revision": "3b035ccaea1c270118d8647d4905691d15bfa93e",
-			"revisionTime": "2015-11-25T15:14:19-07:00"
 		},
 		{
 			"path": "github.com/jimstudt/http-authentication/basic",
@@ -79,143 +34,138 @@
 		},
 		{
 			"path": "github.com/mholt/caddy/caddy",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/caddy/assets",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
-			"path": "github.com/mholt/caddy/caddy/letsencrypt",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"path": "github.com/mholt/caddy/caddy/https",
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/caddy/parse",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/caddy/setup",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/basicauth",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/browse",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/errors",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
+		},
+		{
+			"path": "github.com/mholt/caddy/middleware/expvar",
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/extensions",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/fastcgi",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/gzip",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/headers",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/inner",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/log",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/markdown",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/mime",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
+		},
+		{
+			"path": "github.com/mholt/caddy/middleware/pprof",
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/proxy",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/redirect",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/rewrite",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/templates",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/middleware/websocket",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/mholt/caddy/server",
-			"revision": "c8c57c1dd091540d022cd5d20e8c386dc305937f",
-			"revisionTime": "2016-01-13T21:03:03-07:00"
+			"revision": "b3a5b725db068296fd39dbf102c18ce386d57d1b",
+			"revisionTime": "2016-03-28T21:17:11-06:00"
 		},
 		{
 			"path": "github.com/miekg/dns",
-			"revision": "85b661b2a6fc95a5a83e66d7730c4bc0b6e9c99e",
-			"revisionTime": "2016-01-20T07:47:41Z"
-		},
-		{
-			"path": "github.com/mitchellh/goamz/aws",
-			"revision": "caaaea8b30ee15616494ee68abd5d8ebbbef05cf",
-			"revisionTime": "2015-03-17T10:43:35-07:00"
-		},
-		{
-			"path": "github.com/mitchellh/goamz/route53",
-			"revision": "caaaea8b30ee15616494ee68abd5d8ebbbef05cf",
-			"revisionTime": "2015-03-17T10:43:35-07:00"
-		},
-		{
-			"path": "github.com/rcrowley/go-metrics",
-			"revision": "7839c01b09d2b1d7068034e5fe6e423f6ac5be22",
-			"revisionTime": "2015-11-29T16:13:40-08:00"
+			"revision": "f8964231a81dcbe9fc5f13a228c7f10a933acc50",
+			"revisionTime": "2016-03-17T14:31:27Z"
 		},
 		{
 			"path": "github.com/russross/blackfriday",
-			"revision": "c8875c0ed47e07b063c3628e2e4d4c9826721795",
-			"revisionTime": "2015-12-30T17:42:28+02:00"
+			"revision": "b43df972fb5fdf3af8d2e90f38a69d374fe26dd0",
+			"revisionTime": "2016-03-16T09:29:03+02:00"
 		},
 		{
 			"path": "github.com/shurcooL/sanitized_anchor_name",
@@ -224,58 +174,43 @@
 		},
 		{
 			"path": "github.com/square/go-jose",
-			"revision": "37934a899dd03635373fd1e143936d32cfe48d31",
-			"revisionTime": "2015-11-19T10:07:58-08:00"
+			"revision": "293adbe25f48db25c2212e7313192715b5fc3cea",
+			"revisionTime": "2016-03-21T13:43:38-07:00"
 		},
 		{
 			"path": "github.com/square/go-jose/cipher",
-			"revision": "37934a899dd03635373fd1e143936d32cfe48d31",
-			"revisionTime": "2015-11-19T10:07:58-08:00"
+			"revision": "293adbe25f48db25c2212e7313192715b5fc3cea",
+			"revisionTime": "2016-03-21T13:43:38-07:00"
 		},
 		{
-			"path": "github.com/vaughan0/go-ini",
-			"revision": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1",
-			"revisionTime": "2013-09-23T16:52:12+02:00"
+			"path": "github.com/square/go-jose/json",
+			"revision": "293adbe25f48db25c2212e7313192715b5fc3cea",
+			"revisionTime": "2016-03-21T13:43:38-07:00"
 		},
 		{
 			"path": "github.com/xenolf/lego/acme",
-			"revision": "1ceed018fd2fa8ab0838e54349261e59c6aad040",
-			"revisionTime": "2016-01-22T13:39:32-07:00"
+			"revision": "636fb51fb049cf65c260ba8ea6dc4dc7cfebafa9",
+			"revisionTime": "2016-03-23T05:15:26+01:00"
 		},
 		{
 			"path": "golang.org/x/crypto/ocsp",
-			"revision": "3760e016850398b85094c4c99e955b8c3dea5711",
-			"revisionTime": "2015-12-23T13:51:54-08:00"
+			"revision": "c197bcf24cde29d3f73c7b4ac6fd41f4384e8af6",
+			"revisionTime": "2016-03-17T15:08:20-05:00"
 		},
 		{
-			"path": "golang.org/x/crypto/sha3",
-			"revision": "3760e016850398b85094c4c99e955b8c3dea5711",
-			"revisionTime": "2015-12-23T13:51:54-08:00"
-		},
-		{
-			"path": "golang.org/x/net/context",
-			"revision": "2e9cee70ee697e0a2ef894b560dda50dec7dff58",
-			"revisionTime": "2016-01-21T16:20:05Z"
-		},
-		{
-			"path": "golang.org/x/net/http2",
-			"revision": "2e9cee70ee697e0a2ef894b560dda50dec7dff58",
-			"revisionTime": "2016-01-21T16:20:05Z"
-		},
-		{
-			"path": "golang.org/x/net/http2/hpack",
-			"revision": "2e9cee70ee697e0a2ef894b560dda50dec7dff58",
-			"revisionTime": "2016-01-21T16:20:05Z"
+			"path": "golang.org/x/net/idna",
+			"revision": "31df19d69da8728e9220def59b80ee577c3e48bf",
+			"revisionTime": "2016-03-29T10:16:23+11:00"
 		},
 		{
 			"path": "gopkg.in/natefinch/lumberjack.v2",
-			"revision": "600ceb4523e5b7ff745f91083c8a023c2bf73af5",
-			"revisionTime": "2015-10-12T21:44:48-04:00"
+			"revision": "514cbda263a734ae8caac038dadf05f8f3f9f738",
+			"revisionTime": "2016-01-25T06:17:49-05:00"
 		},
 		{
 			"path": "gopkg.in/yaml.v2",
-			"revision": "f7716cbe52baa25d2e9b0d0da546fcf909fc16b4",
-			"revisionTime": "2015-12-01T14:27:45-02:00"
+			"revision": "a83829b6f1293c91addabc89d0571c246397bbf4",
+			"revisionTime": "2016-03-01T17:40:22-03:00"
 		}
 	]
 }

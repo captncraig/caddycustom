@@ -1,8 +1,0 @@
-
-:8787 {
-	json a b
-	root testSite
-	git https://github.com/captncraig/ignorethis.git repopath {
-		hook /whatever Yqj7BsEahRabSQZNyM6i
-	}
-}

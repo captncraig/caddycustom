@@ -3,139 +3,264 @@ package acme
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
+	"log"
+	"net"
 	"strings"
 	"time"
 
 	"github.com/miekg/dns"
+	"golang.org/x/net/publicsuffix"
 )
 
-type preCheckDNSFunc func(domain, fqdn string) bool
+type preCheckDNSFunc func(fqdn, value string) (bool, error)
 
-var preCheckDNS preCheckDNSFunc = checkDNS
+var (
+	preCheckDNS preCheckDNSFunc = checkDNSPropagation
+	fqdnToZone                  = map[string]string{}
+)
 
-var preCheckDNSFallbackCount = 5
+var recursiveNameserver = "google-public-dns-a.google.com:53"
 
-// DNSProvider represents a service for managing DNS records.
-type DNSProvider interface {
-	CreateTXTRecord(fqdn, value string, ttl int) error
-	RemoveTXTRecord(fqdn, value string, ttl int) error
+// DNS01Record returns a DNS record which will fulfill the `dns-01` challenge
+func DNS01Record(domain, keyAuth string) (fqdn string, value string, ttl int) {
+	keyAuthShaBytes := sha256.Sum256([]byte(keyAuth))
+	// base64URL encoding without padding
+	keyAuthSha := base64.URLEncoding.EncodeToString(keyAuthShaBytes[:sha256.Size])
+	value = strings.TrimRight(keyAuthSha, "=")
+	ttl = 120
+	fqdn = fmt.Sprintf("_acme-challenge.%s.", domain)
+	return
 }
 
 // dnsChallenge implements the dns-01 challenge according to ACME 7.5
 type dnsChallenge struct {
 	jws      *jws
-	provider DNSProvider
+	validate validateFunc
+	provider ChallengeProvider
 }
 
 func (s *dnsChallenge) Solve(chlng challenge, domain string) error {
+	logf("[INFO][%s] acme: Trying to solve DNS-01", domain)
 
-	logf("[INFO] acme: Trying to solve DNS-01")
+	if s.provider == nil {
+		return errors.New("No DNS Provider configured")
+	}
 
 	// Generate the Key Authorization for the challenge
-	keyAuth, err := getKeyAuthorization(chlng.Token, &s.jws.privKey.PublicKey)
+	keyAuth, err := getKeyAuthorization(chlng.Token, s.jws.privKey)
 	if err != nil {
 		return err
 	}
 
-	keyAuthShaBytes := sha256.Sum256([]byte(keyAuth))
-	// base64URL encoding without padding
-	keyAuthSha := base64.URLEncoding.EncodeToString(keyAuthShaBytes[:sha256.Size])
-	keyAuthSha = strings.TrimRight(keyAuthSha, "=")
-
-	fqdn := fmt.Sprintf("_acme-challenge.%s.", domain)
-	if err = s.provider.CreateTXTRecord(fqdn, keyAuthSha, 120); err != nil {
-		return err
-	}
-
-	preCheckDNS(domain, fqdn)
-
-	jsonBytes, err := json.Marshal(challenge{Resource: "challenge", Type: chlng.Type, Token: chlng.Token, KeyAuthorization: keyAuth})
+	err = s.provider.Present(domain, chlng.Token, keyAuth)
 	if err != nil {
-		return errors.New("Failed to marshal network message...")
+		return fmt.Errorf("Error presenting token %s", err)
 	}
-
-	// Tell the server we handle DNS-01
-	resp, err := s.jws.post(chlng.URI, jsonBytes)
-	if err != nil {
-		return fmt.Errorf("Failed to post JWS message. -> %v", err)
-	}
-
-	// Repeatedly check the server for an updated status on our request.
-	var challengeResponse challenge
-Loop:
-	for {
-		if resp.StatusCode >= http.StatusBadRequest {
-			return handleHTTPError(resp)
-		}
-
-		err = json.NewDecoder(resp.Body).Decode(&challengeResponse)
-		resp.Body.Close()
+	defer func() {
+		err := s.provider.CleanUp(domain, chlng.Token, keyAuth)
 		if err != nil {
-			return err
+			log.Printf("Error cleaning up %s %v ", domain, err)
 		}
+	}()
 
-		switch challengeResponse.Status {
-		case "valid":
-			logf("The server validated our request")
-			break Loop
-		case "pending":
-			break
-		case "invalid":
-			return errors.New("The server could not validate our request.")
-		default:
-			return errors.New("The server returned an unexpected state.")
-		}
+	fqdn, value, _ := DNS01Record(domain, keyAuth)
 
-		time.Sleep(1 * time.Second)
-		resp, err = http.Get(chlng.URI)
+	logf("[INFO][%s] Checking DNS record propagation...", domain)
+
+	var timeout, interval time.Duration
+	switch provider := s.provider.(type) {
+	case ChallengeProviderTimeout:
+		timeout, interval = provider.Timeout()
+	default:
+		timeout, interval = 60*time.Second, 2*time.Second
 	}
 
-	if err = s.provider.RemoveTXTRecord(fqdn, keyAuthSha, 120); err != nil {
-		logf("[WARN] acme: Failed to cleanup DNS record. -> %v ", err)
+	err = WaitFor(timeout, interval, func() (bool, error) {
+		return preCheckDNS(fqdn, value)
+	})
+	if err != nil {
+		return err
 	}
 
-	return nil
+	return s.validate(s.jws, domain, chlng.URI, challenge{Resource: "challenge", Type: chlng.Type, Token: chlng.Token, KeyAuthorization: keyAuth})
 }
 
-func checkDNS(domain, fqdn string) bool {
-	// check if the expected DNS entry was created. If not wait for some time and try again.
-	m := new(dns.Msg)
-	m.SetQuestion(domain+".", dns.TypeSOA)
-	c := new(dns.Client)
-	in, _, err := c.Exchange(m, "8.8.8.8:53")
+// checkDNSPropagation checks if the expected TXT record has been propagated to all authoritative nameservers.
+func checkDNSPropagation(fqdn, value string) (bool, error) {
+	// Initial attempt to resolve at the recursive NS
+	r, err := dnsQuery(fqdn, dns.TypeTXT, recursiveNameserver, true)
 	if err != nil {
-		return false
+		return false, err
+	}
+	if r.Rcode == dns.RcodeSuccess {
+		// If we see a CNAME here then use the alias
+		for _, rr := range r.Answer {
+			if cn, ok := rr.(*dns.CNAME); ok {
+				if cn.Hdr.Name == fqdn {
+					fqdn = cn.Target
+					break
+				}
+			}
+		}
 	}
 
-	var authorativeNS string
-	for _, answ := range in.Answer {
-		soa := answ.(*dns.SOA)
-		authorativeNS = soa.Ns
+	authoritativeNss, err := lookupNameservers(fqdn)
+	if err != nil {
+		return false, err
 	}
 
-	fallbackCnt := 0
-	for fallbackCnt < preCheckDNSFallbackCount {
-		m.SetQuestion(fqdn, dns.TypeTXT)
-		in, _, err = c.Exchange(m, authorativeNS+":53")
+	return checkAuthoritativeNss(fqdn, value, authoritativeNss)
+}
+
+// checkAuthoritativeNss queries each of the given nameservers for the expected TXT record.
+func checkAuthoritativeNss(fqdn, value string, nameservers []string) (bool, error) {
+	for _, ns := range nameservers {
+		r, err := dnsQuery(fqdn, dns.TypeTXT, net.JoinHostPort(ns, "53"), false)
 		if err != nil {
-			return false
+			return false, err
 		}
 
-		if len(in.Answer) > 0 {
-			return true
+		if r.Rcode != dns.RcodeSuccess {
+			return false, fmt.Errorf("NS %s returned %s for %s", ns, dns.RcodeToString[r.Rcode], fqdn)
 		}
 
-		fallbackCnt++
-		if fallbackCnt >= preCheckDNSFallbackCount {
-			return false
+		var found bool
+		for _, rr := range r.Answer {
+			if txt, ok := rr.(*dns.TXT); ok {
+				if strings.Join(txt.Txt, "") == value {
+					found = true
+					break
+				}
+			}
 		}
 
-		time.Sleep(time.Second * time.Duration(fallbackCnt))
+		if !found {
+			return false, fmt.Errorf("NS %s did not return the expected TXT record", ns)
+		}
 	}
 
-	return false
+	return true, nil
+}
+
+// dnsQuery sends a DNS query to the given nameserver.
+// The nameserver should include a port, to facilitate testing where we talk to a mock dns server.
+func dnsQuery(fqdn string, rtype uint16, nameserver string, recursive bool) (in *dns.Msg, err error) {
+	m := new(dns.Msg)
+	m.SetQuestion(fqdn, rtype)
+	m.SetEdns0(4096, false)
+
+	if !recursive {
+		m.RecursionDesired = false
+	}
+
+	in, err = dns.Exchange(m, nameserver)
+	if err == dns.ErrTruncated {
+		tcp := &dns.Client{Net: "tcp"}
+		in, _, err = tcp.Exchange(m, nameserver)
+	}
+
+	return
+}
+
+// lookupNameservers returns the authoritative nameservers for the given fqdn.
+func lookupNameservers(fqdn string) ([]string, error) {
+	var authoritativeNss []string
+
+	zone, err := FindZoneByFqdn(fqdn, recursiveNameserver)
+	if err != nil {
+		return nil, err
+	}
+
+	r, err := dnsQuery(zone, dns.TypeNS, recursiveNameserver, true)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, rr := range r.Answer {
+		if ns, ok := rr.(*dns.NS); ok {
+			authoritativeNss = append(authoritativeNss, strings.ToLower(ns.Ns))
+		}
+	}
+
+	if len(authoritativeNss) > 0 {
+		return authoritativeNss, nil
+	}
+	return nil, fmt.Errorf("Could not determine authoritative nameservers")
+}
+
+// FindZoneByFqdn determines the zone of the given fqdn
+func FindZoneByFqdn(fqdn, nameserver string) (string, error) {
+	// Do we have it cached?
+	if zone, ok := fqdnToZone[fqdn]; ok {
+		return zone, nil
+	}
+
+	// Query the authoritative nameserver for a hopefully non-existing SOA record,
+	// in the authority section of the reply it will have the SOA of the
+	// containing zone. rfc2308 has this to say on the subject:
+	//   Name servers authoritative for a zone MUST include the SOA record of
+	//   the zone in the authority section of the response when reporting an
+	//   NXDOMAIN or indicating that no data (NODATA) of the requested type exists
+	in, err := dnsQuery(fqdn, dns.TypeSOA, nameserver, true)
+	if err != nil {
+		return "", err
+	}
+	if in.Rcode != dns.RcodeNameError {
+		if in.Rcode != dns.RcodeSuccess {
+			return "", fmt.Errorf("NS %s returned %s for %s", nameserver, dns.RcodeToString[in.Rcode], fqdn)
+		}
+		// We have a success, so one of the answers has to be a SOA RR
+		for _, ans := range in.Answer {
+			if soa, ok := ans.(*dns.SOA); ok {
+				zone := soa.Hdr.Name
+				// If we ended up on one of the TLDs, it means the domain did not exist.
+				publicsuffix, _ := publicsuffix.PublicSuffix(UnFqdn(zone))
+				if publicsuffix == UnFqdn(zone) {
+					return "", fmt.Errorf("Could not determine zone authoritatively")
+				}
+				fqdnToZone[fqdn] = zone
+				return zone, nil
+			}
+		}
+		// Or it is NODATA, fall through to NXDOMAIN
+	}
+	// Search the authority section for our precious SOA RR
+	for _, ns := range in.Ns {
+		if soa, ok := ns.(*dns.SOA); ok {
+			zone := soa.Hdr.Name
+			// If we ended up on one of the TLDs, it means the domain did not exist.
+			publicsuffix, _ := publicsuffix.PublicSuffix(UnFqdn(zone))
+			if publicsuffix == UnFqdn(zone) {
+				return "", fmt.Errorf("Could not determine zone authoritatively")
+			}
+			fqdnToZone[fqdn] = zone
+			return zone, nil
+		}
+	}
+	return "", fmt.Errorf("NS %s did not return the expected SOA record in the authority section", nameserver)
+}
+
+// ClearFqdnCache clears the cache of fqdn to zone mappings. Primarily used in testing.
+func ClearFqdnCache() {
+	fqdnToZone = map[string]string{}
+}
+
+// ToFqdn converts the name into a fqdn appending a trailing dot.
+func ToFqdn(name string) string {
+	n := len(name)
+	if n == 0 || name[n-1] == '.' {
+		return name
+	}
+	return name + "."
+}
+
+// UnFqdn converts the fqdn into a name removing the trailing dot.
+func UnFqdn(name string) string {
+	n := len(name)
+	if n != 0 && name[n-1] == '.' {
+		return name[:n-1]
+	}
+	return name
 }

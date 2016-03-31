@@ -12,6 +12,7 @@
 package proxy
 
 import (
+	"crypto/tls"
 	"io"
 	"net"
 	"net/http"
@@ -58,6 +59,18 @@ func singleJoiningSlash(a, b string) string {
 	return a + b
 }
 
+// Though the relevant directive prefix is just "unix:", url.Parse
+// will - assuming the regular URL scheme - add additional slashes
+// as if "unix" was a request protocol.
+// What we need is just the path, so if "unix:/var/run/www.socket"
+// was the proxy directive, the parsed hostName would be
+// "unix:///var/run/www.socket", hence the ambiguous trimming.
+func socketDial(hostName string) func(network, addr string) (conn net.Conn, err error) {
+	return func(network, addr string) (conn net.Conn, err error) {
+		return net.Dial("unix", hostName[len("unix://"):])
+	}
+}
+
 // NewSingleHostReverseProxy returns a new ReverseProxy that rewrites
 // URLs to the scheme, host, and base path provided in target. If the
 // target's path is "/base" and the incoming request was for "/dir",
@@ -67,19 +80,44 @@ func singleJoiningSlash(a, b string) string {
 func NewSingleHostReverseProxy(target *url.URL, without string) *ReverseProxy {
 	targetQuery := target.RawQuery
 	director := func(req *http.Request) {
-		req.URL.Scheme = target.Scheme
-		req.URL.Host = target.Host
+		if target.Scheme == "unix" {
+			// to make Dial work with unix URL,
+			// scheme and host have to be faked
+			req.URL.Scheme = "http"
+			req.URL.Host = "socket"
+		} else {
+			req.URL.Scheme = target.Scheme
+			req.URL.Host = target.Host
+		}
 		req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path)
 		if targetQuery == "" || req.URL.RawQuery == "" {
 			req.URL.RawQuery = targetQuery + req.URL.RawQuery
 		} else {
 			req.URL.RawQuery = targetQuery + "&" + req.URL.RawQuery
 		}
+		// Trims the path of the socket from the URL path.
+		// This is done because req.URL passed to your proxied service
+		// will have the full path of the socket file prefixed to it.
+		// Calling /test on a server that proxies requests to
+		// unix:/var/run/www.socket will thus set the requested path
+		// to /var/run/www.socket/test, rendering paths useless.
+		if target.Scheme == "unix" {
+			// See comment on socketDial for the trim
+			socketPrefix := target.String()[len("unix://"):]
+			req.URL.Path = strings.TrimPrefix(req.URL.Path, socketPrefix)
+		}
+		// We are then safe to remove the `without` prefix.
 		if without != "" {
 			req.URL.Path = strings.TrimPrefix(req.URL.Path, without)
 		}
 	}
-	return &ReverseProxy{Director: director}
+	rp := &ReverseProxy{Director: director}
+	if target.Scheme == "unix" {
+		rp.Transport = &http.Transport{
+			Dial: socketDial(target.String()),
+		}
+	}
+	return rp
 }
 
 func copyHeader(dst, src http.Header) {
@@ -101,6 +139,19 @@ var hopHeaders = []string{
 	"Trailers",
 	"Transfer-Encoding",
 	"Upgrade",
+}
+
+// InsecureTransport is used to facilitate HTTPS proxying
+// when it is OK for upstream to be using a bad certificate,
+// since this transport skips verification.
+var InsecureTransport http.RoundTripper = &http.Transport{
+	Proxy: http.ProxyFromEnvironment,
+	Dial: (&net.Dialer{
+		Timeout:   30 * time.Second,
+		KeepAlive: 30 * time.Second,
+	}).Dial,
+	TLSHandshakeTimeout: 10 * time.Second,
+	TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
 }
 
 func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request, extraHeaders http.Header) error {
