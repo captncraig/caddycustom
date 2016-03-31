@@ -1,0 +1,6 @@
+localhost:8099
+
+realip {
+  header x-foo-foo
+  cloudflare
+}

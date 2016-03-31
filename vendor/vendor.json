@@ -8,6 +8,21 @@
 			"revisionTime": "2016-03-08T18:19:12-08:00"
 		},
 		{
+			"path": "github.com/abiosoft/caddy-git",
+			"revision": "4b6d854d5bfef4fc93765923eff92525533e0cce",
+			"revisionTime": "2016-01-21T00:17:53+01:00"
+		},
+		{
+			"path": "github.com/abiosoft/caddy-git/gitos",
+			"revision": "4b6d854d5bfef4fc93765923eff92525533e0cce",
+			"revisionTime": "2016-01-21T00:17:53+01:00"
+		},
+		{
+			"path": "github.com/captncraig/caddy-realip",
+			"revision": "d5e8287516cd7527bd481451797820d5280a109b",
+			"revisionTime": "2016-03-23T14:09:19-06:00"
+		},
+		{
 			"path": "github.com/dustin/go-humanize",
 			"revision": "8929fe90cee4b2cb9deb468b51fb34eba64d1bf0",
 			"revisionTime": "2015-11-25T16:46:33-05:00"
